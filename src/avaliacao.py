@@ -49,3 +49,15 @@ def palavras_influentes(modelo, resultados):
     print(palavras_ordenadas.tail(10))
 
     pd.concat([palavras_ordenadas.head(10), palavras_ordenadas.tail(10)]).to_csv(resultados / 'palavras_influentes.csv', index=False)
+    
+def casos_dificeis(modelo, casos_dificeis, resultados):
+    previsoes = modelo.predict(casos_dificeis['texto'])
+    tabela_casos = pd.DataFrame({
+        "texto": casos_dificeis['texto'],
+        "esperado": casos_dificeis['sentimento_esperado'],
+        "tipo": casos_dificeis['tipo'],
+        "previsto": previsoes,
+        "probabilidade": modelo.predict_proba(casos_dificeis['texto'])[:, 1]
+    })
+
+    tabela_casos.to_csv(resultados / 'casos_dificeis_predicoes.csv', index=False)
