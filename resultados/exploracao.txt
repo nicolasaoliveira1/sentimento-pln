@@ -1,0 +1,26 @@
+Quantidade de avaliações por classe:
+sentimento
+negativo    130
+positivo    130
+Name: count, dtype: int64
+
+Média do número de palavras por classe:
+sentimento
+negativo    7.707692
+positivo    7.700000
+Name: numero_palavras, dtype: float64
+
+Total de avaliações:
+260
+
+Exemplos de avaliações positivas:
+                                                    texto  numero_palavras
+                                Adorei o aplicativo, show                4
+          Adorei o atendimento, nota máxima para a equipe                8
+Ficou lindo na sala, combinou perfeitamente com os móveis                9
+
+Exemplos de avaliações negativas:
+                                              texto  numero_palavras
+           Detestei o fone, ruim, nunca mais compro                7
+                        A embalagem não é excelente                5
+Cheguei animado, mas me arrependi, tudo estava sujo                8
