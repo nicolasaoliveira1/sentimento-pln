@@ -3,7 +3,7 @@ from pathlib import Path
 
 from sklearn.model_selection import train_test_split
 from src.exploracao import exploracao
-from src.avaliacao import avaliar
+from src.avaliacao import avaliar, palavras_influentes
 from src.modelos import modelo_a, comparar_modelos
 
 resultados = Path(__file__).parent / 'resultados'
@@ -23,5 +23,4 @@ comparar_modelos(X_treino, y_treino, resultados)
 
 avaliar(modelo_a, X_teste, y_teste, resultados)
 
-
-nomes_palavras = modelo_a.named_steps['vetorizador'].get_feature_names_out()
+palavras_influentes(modelo_a, resultados)

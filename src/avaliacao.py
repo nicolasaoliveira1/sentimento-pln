@@ -30,3 +30,22 @@ def avaliar(modelo, X_teste, y_teste, resultados):
 
     erros = tabela_teste[mascara_erros.to_numpy()]
     erros.to_csv(resultados / 'erros.csv', index=False)
+
+
+def palavras_influentes(modelo, resultados):
+    nomes_palavras = modelo.named_steps['vetorizador'].get_feature_names_out()
+    coeficientes = modelo.named_steps['classificador'].coef_[0]
+    print(len(nomes_palavras), len(coeficientes))
+
+    tabela_palavras = pd.DataFrame({
+        "palavra": nomes_palavras,
+        "coeficiente": coeficientes
+    })
+
+    palavras_ordenadas = tabela_palavras.sort_values(by="coeficiente", ascending=False)
+    print("Top 10 palavras mais associadas à classe positiva:")
+    print(palavras_ordenadas.head(10))
+    print("\nTop 10 palavras mais associadas à classe negativa:")
+    print(palavras_ordenadas.tail(10))
+
+    pd.concat([palavras_ordenadas.head(10), palavras_ordenadas.tail(10)]).to_csv(resultados / 'palavras_influentes.csv', index=False)
