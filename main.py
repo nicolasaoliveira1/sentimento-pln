@@ -6,6 +6,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_validate, StratifiedKFold
+from sklearn.metrics import confusion_matrix, classification_report
 from src.preprocessamento import prep
 from functools import partial
 
@@ -92,3 +93,94 @@ print(f"Acurácia média: {cross_val_results_D['test_accuracy'].mean():.4f}")
 print(f"Desvio padrão Acurácia: {cross_val_results_D['test_accuracy'].std():.4f}")
 print(f"Média F1 macro: {cross_val_results_D['test_f1_macro'].mean():.4f}")
 print(f"Desvio padrão F1 macro: {cross_val_results_D['test_f1_macro'].std():.4f}")
+
+modelo_a.fit(X_treino, y_treino)
+vocabulario_a = len(modelo_a.named_steps['vetorizador'].vocabulary_)
+print(f"Vocabulário A: {vocabulario_a}")
+
+modelo_b.fit(X_treino, y_treino)
+vocabulario_b = len(modelo_b.named_steps['vetorizador'].vocabulary_)
+print(f"Vocabulário B: {vocabulario_b}")
+
+modelo_C.fit(X_treino, y_treino)
+vocabulario_c = len(modelo_C.named_steps['vetorizador'].vocabulary_)
+print(f"Vocabulário C: {vocabulario_c}")
+
+modelo_D.fit(X_treino, y_treino)
+vocabulario_d = len(modelo_D.named_steps['vetorizador'].vocabulary_)
+print(f"Vocabulário D: {vocabulario_d}")
+
+comparacao = [
+    {
+        "config": "A",
+        "stopwords": "mantidas",
+        "vetorizador": "BoW",
+        "vocabulario": vocabulario_a,
+        "acc_cv_media": cross_val_results_A['test_accuracy'].mean(),
+        "acc_cv_desvio": cross_val_results_A['test_accuracy'].std(),
+        "f1_cv_media": cross_val_results_A['test_f1_macro'].mean(),
+        "f1_cv_desvio": cross_val_results_A['test_f1_macro'].std()
+    },
+    {
+        "config": "B",
+        "stopwords": "mantidas",
+        "vetorizador": "TF-IDF",
+        "vocabulario": vocabulario_b,
+        "acc_cv_media": cross_val_results_B['test_accuracy'].mean(),
+        "acc_cv_desvio": cross_val_results_B['test_accuracy'].std(),
+        "f1_cv_media": cross_val_results_B['test_f1_macro'].mean(),
+        "f1_cv_desvio": cross_val_results_B['test_f1_macro'].std()
+    },
+    {
+        "config": "C",
+        "stopwords": "removidas",
+        "vetorizador": "BoW",
+        "vocabulario": vocabulario_c,
+        "acc_cv_media": cross_val_results_C['test_accuracy'].mean(),
+        "acc_cv_desvio": cross_val_results_C['test_accuracy'].std(),
+        "f1_cv_media": cross_val_results_C['test_f1_macro'].mean(),
+        "f1_cv_desvio": cross_val_results_C['test_f1_macro'].std()
+    },
+    {
+        "config": "D",
+        "stopwords": "removidas",
+        "vetorizador": "TF-IDF",
+        "vocabulario": vocabulario_d,
+        "acc_cv_media": cross_val_results_D['test_accuracy'].mean(),
+        "acc_cv_desvio": cross_val_results_D['test_accuracy'].std(),
+        "f1_cv_media": cross_val_results_D['test_f1_macro'].mean(),
+        "f1_cv_desvio": cross_val_results_D['test_f1_macro'].std()
+    }
+]
+
+pd.DataFrame(comparacao).to_csv(resultados / 'comparacao.csv', index=False)
+
+previsoes = modelo_a.predict(X_teste)
+matriz_confusao = confusion_matrix(y_teste, previsoes, labels=["positivo", "negativo"])
+print(f"Matriz de confusão Modelo A:\n{matriz_confusao}")
+
+pd.DataFrame(matriz_confusao, index=["positivo", "negativo"], columns=["positivo", "negativo"]).to_csv(resultados / 'matriz_confusao.csv', index=True)
+
+classificacao = classification_report(y_teste, previsoes, labels=["positivo", "negativo"])
+with open(resultados / 'relatorio_classificacao.txt', 'w', encoding='utf-8') as f:
+    f.write(classificacao)
+
+mascara_erros = y_teste != previsoes
+print("Quantidade de erros:", mascara_erros.sum())
+print("Ordem das classes:", modelo_a.classes_)
+
+
+X_teste_convertido = X_teste.to_numpy()
+y_teste_convertido = y_teste.to_numpy()
+
+tabela_teste = pd.DataFrame({
+    "texto": X_teste_convertido,
+    "real": y_teste_convertido,
+    "previsto": previsoes,
+    "probabilidade": modelo_a.predict_proba(X_teste).max(axis=1)
+})
+
+erros = tabela_teste[mascara_erros.to_numpy()]
+erros.to_csv(resultados / 'erros.csv', index=False)
+
+nomes_palavras = modelo_a.named_steps['vetorizador'].get_feature_names_out()
